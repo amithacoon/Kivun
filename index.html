@@ -12,8 +12,13 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Heebo', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
+              sans: ['Inter', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+              mono: ['IBM Plex Mono', 'monospace'],
+            },
+            colors: {
+              amber: { 600: '#D97706', 700: '#B45309' },
+              ink: '#0a0a0a',
             },
           },
         },
@@ -27,10 +32,12 @@
         document.documentElement.classList.remove('dark')
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Heebo', sans-serif; }
-        code, pre { font-family: 'JetBrains Mono', monospace; }
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'IBM Plex Mono', monospace; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -62,7 +69,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-500">
+  <body class="bg-white dark:bg-[#0a0a0a] text-[#0a0a0a] dark:text-slate-100 antialiased transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>

@@ -1,44 +1,216 @@
-# Kivun - Smart BiDi Fixer
+# Kivun - תיקון כיווניות טקסט חכם
 
-Professional tool for correcting bidirectional text layout issues in Hebrew and English documents.
+**Kivun** (כיוון) הוא כלי ווב מקצועי לתיקון בעיות כיווניות (BiDi - Bidirectional Text) בטקסטים המשלבים עברית, אנגלית ואימוג'ים.
 
-## Running Locally (Standalone)
+הבעיה שהוא פותר: כאשר מעבדים טקסט עברי עם מודלי AI, Word, או כלים שונים, סימני פיסוק, סוגריים ואימוג'ים עלולים "לקפוץ" לצד הלא נכון של השורה בגלל אלגוריתם ה-BiDi של יוניקוד. Kivun מטפל בזה אוטומטית.
 
-This project is a complete React application. To run it locally on your machine:
+---
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm (comes with Node.js)
+## מבנה הפרויקט
 
-### Installation
+```
+Kivun/
+├── server.ts               # שרת Express עם API וסטטיסטיקות
+├── App.tsx                 # קומפוננטת React ראשית + ניהול תמה
+├── index.tsx               # נקודת כניסה ל-React
+├── index.html              # קובץ HTML בסיסי
+├── constants.ts            # קבועים, עובדות לשוניות ותבנית C
+├── components/
+│   ├── BidiFixer.tsx       # ממשק הכלי הראשי (קלט, עיבוד, פלט)
+│   └── GlobalStats.tsx     # לוח סטטיסטיקות גלובלי
+├── utils/
+│   └── bidiProcessor.ts    # אלגוריתם תיקון ה-BiDi
+└── services/
+    └── statsService.ts     # שירות שליפת ועדכון סטטיסטיקות
+```
 
-1. Unzip the package (if downloaded as ZIP).
-2. Open a terminal in the project folder.
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
+---
 
-### Development Server
+## הסבר על כל קובץ
 
-Start the local development server:
+### `server.ts` - השרת
+
+שרת Express שמשמש גם כ-API backend וגם כשרת פיתוח (Vite middleware).
+
+**מה שקורה שם:**
+- בסביבת פיתוח: מריץ את Vite כ-middleware כדי לספק את ה-React app
+- בסביבת ייצור: מגיש את הבנייה הסטטית מתיקיית `dist/`
+- מנהל קובץ `data/stats.json` לשמירת סטטיסטיקות שימוש על הדיסק
+
+**API endpoints:**
+- `GET /api/stats` - מחזיר את הסטטיסטיקות הנוכחיות
+- `POST /api/stats` - מעדכן סטטיסטיקות אחרי עיבוד (מקבל `chars` ו-`replacements`)
+- `POST /api/stats/reset` - מאפס את כל הנתונים (מוגן בסיסמה)
+
+**איפוס תקופתי:** השרת מאפס אוטומטית את `totalCharsWeek` בתחילת שבוע חדש ואת `totalCharsMonth` בתחילת חודש חדש.
+
+---
+
+### `App.tsx` - הקומפוננטה הראשית
+
+מנהל את ה-layout הכולל ואת מצב התמה (light/dark/system).
+
+**מה שקורה שם:**
+- שומר את העדפת התמה ב-`localStorage`
+- מאזין ל-`prefers-color-scheme` של מערכת ההפעלה לתמה "אוטומטית"
+- מגדיר `dir="rtl"` ברמת ה-`div` הראשי - מה שאחראי לכיווניות כלל הדף
+- מרכיב: `<BidiFixer />` (הכלי עצמו) ו-`<GlobalStats />` (הסטטיסטיקות)
+
+---
+
+### `components/BidiFixer.tsx` - הכלי הראשי
+
+הלב של האפליקציה. מכיל את כל ממשק המשתמש לעיבוד טקסט.
+
+**מה שקורה שם:**
+
+1. **קלט (`contentEditable div`):** שדה עריכה חופשי שמקבל טקסט עשיר (HTML) כולל הדגשות ורשימות. מוגבל ל-10,000 תווים.
+
+2. **כפתור "שנה לעברית תקינה":** קורא ל-`processContent()` מהאלגוריתם, מחכה 400ms (כדי להציג אנימציה), ומציג את התוצאה.
+
+3. **פלט דו-מצבי:**
+   - "תצוגה מעובדת" - מציג את ה-HTML המעובד עם עיצוב תקין
+   - "תווי יוניקוד" - מציג את הטקסט הגולמי כולל תווי שליטה (RLM, LRM וכו')
+
+4. **שלוש אפשרויות העתקה:**
+   - "העתקה ל-Word" - מייצר HTML מיוחד עם namespace של Office שנדבק נכון ב-Word
+   - "לגרסת Office בעברית (תיקון Bold)" - אותו דבר אבל עם `font-weight: normal` מפורש כדי לתקן בעיה ידועה ב-Word בעברית שמוסיף Bold לכל הטקסט
+   - "טקסט נקי" - העתקה של הטקסט הגולמי בלי עיצוב
+
+5. **דוח עיבוד:** אחרי כל עיבוד מוצג dashboard עם מספר תווים, החלפות, עוגני כיוון ואחוז שיפור. גם מוצגת "עובדת לשונית" אקראית מתוך מאגר.
+
+---
+
+### `utils/bidiProcessor.ts` - אלגוריתם ה-BiDi
+
+זה המוח של הפרויקט. מכיל את הלוגיקה שמתקנת את הטקסט.
+
+**תווי שליטה ביוניקוד שבשימוש:**
+| תו | Unicode | משמעות |
+|----|---------|---------|
+| `RLM` | U+200F | Right-to-Left Mark - עוגן כיוון ימין-לשמאל |
+| `LRM` | U+200E | Left-to-Right Mark - עוגן כיוון שמאל-ימין |
+| `RLE` | U+202B | Right-to-Left Embedding |
+| `PDF` | U+202C | Pop Directional Formatting |
+
+**ניקוד עברי מקורי:**
+| תו | Unicode | משמעות |
+|----|---------|---------|
+| מקף (`HEB_MAQAF`) | U+05BE | מקף עברי במקום מינוס |
+| גרש (`HEB_GERESH`) | U+05F3 | גרש במקום apostrophe |
+| גרשיים (`HEB_GERSHAYIM`) | U+05F4 | גרשיים במקום מרכאות כפולות |
+
+**איך האלגוריתם עובד (צעד-אחר-צעד):**
+
+1. **פירוק ה-DOM:** משתמש ב-`TreeWalker` כדי לעבור על כל text nodes ב-HTML, תוך שמירת מבנה העיצוב (bold, רשימות וכו').
+
+2. **בניית מפה גלובלית:** מחבר את כל הטקסט למחרוזת אחת גדולה ושומר את המיפוי בחזרה לצמתים. זה מאפשר להסתכל קדימה ואחורה מעבר לגבולות element-ים.
+
+3. **קידוד מקדים (Optimization):** ממיר כל תו לסוג שלו (`HEBREW`, `ENGLISH`, `NEWLINE`, `NONE`) ב-`Uint8Array`. מבצע memoization של תוצאות lookahead/lookbehind.
+
+4. **עיבוד כל תו:**
+
+   - **Em-dash (`—`):** מוחלף בפשוט מינוס (`-`)
+   - **סוגריים פותחים:** אם אחריהם אנגלית -> מוסיף `RLM+LRM` לפני (סוגר הקשר עברי, פותח LTR). אם אחריהם עברית -> רק `RLM`.
+   - **סוגריים סוגרים:** בדיקה של הקשר לפני ואחרי. אם סוגר קטע אנגלית ואחריו עברית -> `LRM+RLM` (מפרק את הקשר הנוכחי).
+   - **מרכאות (`"`, `'`):** אם בין שתי מילים אנגליות -> נשאר ASCII. אחרת -> מוחלף בגרש/גרשיים עבריים.
+   - **מקף (`-`):** אם בין שתי אותיות עבריות -> נשאר (כי זה מקף בתוך מילה עברית).
+   - **סימני פיסוק חלשים (`:`, `;`, `.`, `!` וכו'):** אם בסוף שורה או בהקשר לא ברור -> מוסיף `RLM` כדי לעגן אותם לצד העברי.
+   - **אימוג'ים:** מוסיף `RLM` אחרי כל אימוג'י כדי למנוע "קפיצה" ימינה.
+
+5. **כתיבה בחזרה:** מחזיר את הטקסט המתוקן לאותם text nodes בדיוק, שומר את כל מבנה ה-HTML.
+
+**`getWordFriendlyHtml` / `getHebrewOfficeHtml`:** פונקציות שעוטפות את ה-HTML המעובד ב-template מיוחד עם namespace של Microsoft Office, כך שה-copy-paste ל-Word ייצור מסמך RTL תקין.
+
+---
+
+### `components/GlobalStats.tsx` - לוח הסטטיסטיקות
+
+מציג נתוני שימוש גלובליים בתחתית הדף.
+
+**מה שקורה שם:**
+- בטעינה: קורא ל-`statsService.getStats()` - מנסה לקבל נתונים מהשרת, נופל ל-localStorage אם offline
+- מציג: סה"כ תווים עיבוד (כל הזמן / החודש / השבוע), מספר החלפות, ומספר שימושים
+- מאזין לאירוע `kivun_stats_updated` כדי להתרענן אוטומטית אחרי כל עיבוד
+- **איפוס:** לחיצה על "Reset DB" מבקשת סיסמה. בענן - שולח ל-API. במצב offline - קוד הגישה הוא `local-reset`.
+
+---
+
+### `services/statsService.ts` - שירות הסטטיסטיקות
+
+שכבת שירות שמנהלת את כל הקריאות ל-API ואת ה-fallback המקומי.
+
+**מה שקורה שם:**
+- **Cloud-first:** כל פעולה מנסה קודם את שרת ה-API
+- **Fallback:** אם השרת לא זמין (offline, פיתוח ללא שרת) - עובד עם `localStorage`
+- **pub/sub:** משתמש ב-`window.dispatchEvent` / `window.addEventListener` לתקשורת בין קומפוננטות ללא Redux או context
+
+---
+
+### `constants.ts` - קבועים ותבנית C
+
+מכיל:
+- **`LANGUAGE_FACTS`:** מאגר של עובדות לשוניות/טכניות מעניינות שמוצגות אחרי כל עיבוד (על BiDi, אימוג'ים, היסטוריה של עברית דיגיטלית)
+- **`C_CODE_TEMPLATE`:** קוד C מלא שמיישם גרסה offline של האלגוריתם. ניתן להורדה דרך הממשק - מאפשר למשתמשים להריץ את הכלי ב-terminal בלי צורך בדפדפן.
+
+---
+
+## התקנה והרצה
+
+### דרישות מקדימות
+- Node.js v18 ומעלה
+
+### התקנת dependencies
+
+```bash
+npm install
+```
+
+### הרצה בסביבת פיתוח
+
 ```bash
 npm run dev
 ```
-Open your browser at `http://localhost:3000`.
 
-### Building for Production
+האפליקציה תיפתח בכתובת `http://localhost:3000`
 
-To create a production build:
+### בנייה לייצור
+
 ```bash
 npm run build
 ```
-The output will be in the `dist` folder.
 
-## Project Structure
+הפלט נשמר בתיקיית `dist/`. לאחר מכן:
 
-- `index.html` - Entry HTML
-- `index.tsx` - Entry TypeScript/React file
-- `App.tsx` - Main Application component
-- `components/` - UI Components
-- `constants.ts` - Shared constants and C implementation
+```bash
+npm run start
+```
+
+### משתני סביבה
+
+העתק את `.env.example` ל-`.env` וערוך:
+
+```bash
+cp .env.example .env
+```
+
+| משתנה | תיאור | ברירת מחדל |
+|-------|--------|------------|
+| `ADMIN_PASSWORD` | סיסמה לאיפוס הסטטיסטיקות | `123456` |
+
+---
+
+## Stack טכנולוגי
+
+| טכנולוגיה | שימוש |
+|-----------|-------|
+| React 19 | ממשק משתמש |
+| TypeScript | שפת הפרויקט |
+| Vite | bundler ושרת פיתוח |
+| Express | שרת backend + API |
+| Tailwind CSS | עיצוב |
+| Lucide React | אייקונים |
+
+---
+
+נוצר על ידי **Amit Hacoon**

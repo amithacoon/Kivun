@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Sparkles, FileText, SmilePlus, ArrowRightLeft, Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor } from 'lucide-react';
 import { BidiFixer } from './components/BidiFixer';
 import { GlobalStats } from './components/GlobalStats';
 
@@ -14,7 +14,6 @@ function App() {
     return 'system';
   });
 
-  // Apply theme class and listen for system changes
   useEffect(() => {
     const root = document.documentElement;
     localStorage.setItem('theme', theme);
@@ -22,11 +21,7 @@ function App() {
     const applyTheme = () => {
       if (theme === 'system') {
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (systemDark) {
-          root.classList.add('dark');
-        } else {
-          root.classList.remove('dark');
-        }
+        if (systemDark) { root.classList.add('dark'); } else { root.classList.remove('dark'); }
       } else if (theme === 'dark') {
         root.classList.add('dark');
       } else {
@@ -37,11 +32,7 @@ function App() {
     applyTheme();
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') {
-        applyTheme();
-      }
-    };
+    const handleChange = () => { if (theme === 'system') applyTheme(); };
 
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
@@ -59,89 +50,78 @@ function App() {
   };
 
   const getThemeIcon = () => {
-    if (theme === 'light') return <Sun size={18} />;
-    if (theme === 'dark') return <Moon size={18} />;
-    return <Monitor size={18} />;
-  };
-
-  const getThemeTitle = () => {
-    if (theme === 'light') return 'תאורה: בהירה';
-    if (theme === 'dark') return 'תאורה: כהה';
-    return 'תאורה: אוטומטי (לפי המערכת)';
+    if (theme === 'light') return <Sun size={16} />;
+    if (theme === 'dark') return <Moon size={16} />;
+    return <Monitor size={16} />;
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 font-sans selection:bg-blue-100 dark:selection:bg-blue-900/30" dir="rtl">
-      
-      {/* Top Navigation */}
-      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-all duration-500">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                  <ArrowRightLeft size={20} />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100 transition-colors duration-500">Kivun</span>
-           </div>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300 font-sans" dir="rtl">
 
-           <div className="flex items-center gap-4">
-              <button 
-                onClick={cycleTheme}
-                title={getThemeTitle()}
-                className="px-3 py-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors duration-300 flex items-center gap-2 justify-center"
-              >
-                {getThemeIcon()}
-                <span className="text-xs font-medium hidden sm:inline-block">
-                  {theme === 'light' ? 'תצוגה בהירה' : theme === 'dark' ? 'תצוגה כהה' : 'תצוגת מערכת'}
-                </span>
-              </button>
-              <div className="hidden md:flex items-center gap-2 text-[10px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800/50 uppercase">
-                <SmilePlus size={12} />
-                Emoji Support Ready
-              </div>
-           </div>
+      {/* Nav */}
+      <nav className="border-b-2 border-[#0a0a0a] dark:border-slate-700 sticky top-0 z-50 bg-white dark:bg-[#0a0a0a] transition-colors">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 h-14 flex items-center justify-between">
+          <span className="font-serif font-black text-[22px] tracking-tight text-[#0a0a0a] dark:text-white">
+            Kivun <span className="text-amber-600">⇄</span>
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden md:inline-block font-mono text-[9px] font-semibold tracking-[2.5px] uppercase border-[1.5px] border-[#0a0a0a] dark:border-slate-500 px-2.5 py-1 text-[#0a0a0a] dark:text-slate-300">
+              Emoji Ready
+            </span>
+            <button
+              onClick={cycleTheme}
+              title={theme === 'light' ? 'בהירה' : theme === 'dark' ? 'כהה' : 'מערכת'}
+              className="w-8 h-8 border-[1.5px] border-[#0a0a0a] dark:border-slate-500 bg-white dark:bg-[#0a0a0a] flex items-center justify-center text-[#0a0a0a] dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+            >
+              {getThemeIcon()}
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-10">
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="text-center space-y-3 mb-10 pt-8">
-                  <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white transition-colors duration-500 tracking-tight">תיקון כיווניות חכם</h1>
-                  <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed transition-colors duration-500">
-                      תחנת עבודה מקצועית לסידור טקסטים המשלבים עברית, אנגלית ואימוג'ים 🚀.
-                      האלגוריתם מתקן את הפיסוק ומשמר את כל סוגי התווים המורכבים.
-                  </p>
-              </div>
-
-              <BidiFixer />
-
-              <div className="mt-16 border-t border-slate-200 dark:border-slate-800 pt-8 grid md:grid-cols-3 gap-6 text-center transition-colors duration-500">
-                  <div className="p-4 group">
-                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
-                          <Sparkles size={24} />
-                      </div>
-                      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-2 transition-colors duration-500">אופטימיזציית AI</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-500 leading-relaxed">תיקון מושלם לפלטים של מודלי שפה שסובלים מ"בלגן" בפיסוק.</p>
-                  </div>
-                  <div className="p-4 group">
-                      <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 shadow-sm">
-                          <SmilePlus size={24} />
-                      </div>
-                      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-2 transition-colors duration-500">תמיכה באימוג'ים</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-500 leading-relaxed">שימוש באיטרטורים מודרניים למניעת שבירת תווים מורכבים ואימוג'ים.</p>
-                  </div>
-                  <div className="p-4 group">
-                      <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
-                          <FileText size={24} />
-                      </div>
-                      <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-2 transition-colors duration-500">שמירת עיצוב</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-500 leading-relaxed">הדגשות, רשימות ופורמטים נשמרים במדויק במהלך העיבוד.</p>
-                  </div>
-              </div>
+      {/* Hero */}
+      <header className="border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-12 md:py-16 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          <div>
+            <div className="font-mono text-[11px] font-semibold tracking-[3px] text-amber-600 uppercase mb-4 flex items-center gap-2">
+              <span className="inline-block w-6 h-[2px] bg-amber-600" />
+              Smart BiDi Fixer
+            </div>
+            <h1 className="font-serif font-black text-6xl md:text-[80px] leading-[0.95] tracking-tight text-[#0a0a0a] dark:text-white transition-colors">
+              תיקון<br/>כיווניות
+            </h1>
           </div>
+          <p className="max-w-[280px] text-[13px] leading-[1.8] text-slate-500 dark:text-slate-400 border-r-2 border-amber-600 pr-4 transition-colors">
+            תחנת עבודה לסידור טקסטים המשלבים עברית, אנגלית ואימוג'ים.
+            האלגוריתם מתקן פיסוק ומשמר תווים מורכבים — בדיוק מקצועי.
+          </p>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-6 md:px-10 py-10">
+        <BidiFixer />
+
+        {/* Features */}
+        <div className="mt-16 grid md:grid-cols-3 border-t border-slate-200 dark:border-slate-800 transition-colors">
+          <div className="py-7 px-6 md:border-l border-slate-200 dark:border-slate-800 transition-colors">
+            <div className="text-xl mb-3">✦</div>
+            <h3 className="font-serif font-bold text-base text-[#0a0a0a] dark:text-white mb-2 transition-colors">אופטימיזציית AI</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed transition-colors">תיקון מושלם לפלטים של מודלי שפה שסובלים מ״בלגן״ בפיסוק.</p>
+          </div>
+          <div className="py-7 px-6 md:border-l border-slate-200 dark:border-slate-800 border-t md:border-t-0 transition-colors">
+            <div className="text-xl mb-3">😊</div>
+            <h3 className="font-serif font-bold text-base text-[#0a0a0a] dark:text-white mb-2 transition-colors">תמיכה באימוג'ים</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed transition-colors">שימוש באיטרטורים מודרניים למניעת שבירת תווים מורכבים.</p>
+          </div>
+          <div className="py-7 px-6 border-t md:border-t-0 transition-colors">
+            <div className="text-xl mb-3">❡</div>
+            <h3 className="font-serif font-bold text-base text-[#0a0a0a] dark:text-white mb-2 transition-colors">שמירת עיצוב</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed transition-colors">הדגשות, רשימות ופורמטים נשמרים במדויק במהלך העיבוד.</p>
+          </div>
+        </div>
       </main>
-      
-      {/* Global Stats Section */}
+
       <GlobalStats />
     </div>
   );
