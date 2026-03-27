@@ -1,11 +1,44 @@
-<div align="center">
+# Kivun - Smart BiDi Fixer
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Professional tool for correcting bidirectional text layout issues in Hebrew and English documents.
 
-  <h1>Built with AI Studio</h2>
+## Running Locally (Standalone)
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+This project is a complete React application. To run it locally on your machine:
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+### Prerequisites
+- Node.js (v18 or higher)
+- npm (comes with Node.js)
 
-</div>
+### Installation
+
+1. Unzip the package (if downloaded as ZIP).
+2. Open a terminal in the project folder.
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Development Server
+
+Start the local development server:
+```bash
+npm run dev
+```
+Open your browser at `http://localhost:3000`.
+
+### Building for Production
+
+To create a production build:
+```bash
+npm run build
+```
+The output will be in the `dist` folder.
+
+## Project Structure
+
+- `index.html` - Entry HTML
+- `index.tsx` - Entry TypeScript/React file
+- `App.tsx` - Main Application component
+- `components/` - UI Components
+- `constants.ts` - Shared constants and C implementation
